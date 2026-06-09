@@ -15,8 +15,8 @@ workflows:
     triggering:
       events:
         - push
-      branches:
-        - main
+      branch_patterns:
+        - pattern: 'main'
     scripts:
       - name: Create .env file from Codemagic Environment Variables
         script: |
