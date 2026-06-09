@@ -1,8 +1,6 @@
 # Set minimum deployment target to iOS 14.0
 platform :ios, '14.0'
 
-import_from_generated_with_spm
-
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
