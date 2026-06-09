@@ -1,0 +1,4 @@
+storePassword=57004114608Mu.
+keyPassword=57004114608Mu.
+keyAlias=karavanca
+storeFile=karavanca-release-key.jks
