@@ -25,8 +25,6 @@ workflows:
       - name: Set up local properties and dependencies
         script: |
           flutter pub get
-          flutter build ios --config-only
-          cd ios && pod install
       - name: Flutter build iOS (Archive)
         script: |
           flutter build ios --release --no-codesign
