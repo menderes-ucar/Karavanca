@@ -16,12 +16,10 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.mndrs.karavanis
-
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: 'main'
+        certificates:
+          - karavanca_distribution
+        provisioning_profiles:
+          - karavanca_profile
 
     scripts:
       - name: Create .env file
