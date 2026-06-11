@@ -8,10 +8,11 @@ Karavanca is a comprehensive, production-ready mobile application built with **F
 
 | Main Screen | Caravan Listings | User Profile & Credits |
 | :---: | :---: | :---: |
-| <img src="https://raw.githubusercontent.com/menderes-ucar/Karavanca/main/karavanca5.jpeg" width="250"> | <img src="https://raw.githubusercontent.com/menderes-ucar/Karavanca/main/karavanca2.jpeg" width="250"> | <img src="https://raw.githubusercontent.com/menderes-ucar/Karavanca/main/karavanca4.jpeg" width="250"> |
+| <img src="karavanca5.jpeg" width="250"> | <img src="karavanca2.jpeg" width="250"> | <img src="karavanca4.jpeg" width="250"> |
 
-*Note: Developed with a mobile-first philosophy, adhering strictly to modern premium design principles, responsive layouts, and dynamic theme scaling.*
-
+| Map & Explore | Extra Interface |
+| :---: | :---: |
+| <img src="karavanca3.jpeg" width="250"> | <img src="karavanca1.jpeg" width="250"> |
 ---
 
 ## 🛠️ Technical Architecture & Key Features
