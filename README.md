@@ -3,16 +3,31 @@
 Karavanca is a comprehensive, production-ready mobile application built with **Flutter** and **Dart**, specifically designed for camping and caravan enthusiasts. It serves as a dual-purpose platform combining a high-end peer-to-peer (P2P) marketplace for caravan rentals, sales, and camping gear with a robust, location-based travel discovery engine.
 
 ---
-
+---
 ## 📸 UI/UX Design & Screenshots
 
+
+
 | Main Screen | Caravan Listings | User Profile & Credits |
+
 | :---: | :---: | :---: |
-| <img src="karavanca5.jpeg" width="250"> | <img src="karavanca2.jpeg" width="250"> | <img src="karavanca4.jpeg" width="250"> |
+
+| <img width="738" height="1600" alt="karavanca1" src="https://github.com/user-attachments/assets/e822d3c8-1504-4e1f-82de-9f35cdfafa32" /> |<img width="740" height="1600" alt="karavanca2" src="https://github.com/user-attachments/assets/abcd5def-cf3d-40e3-9c91-c8da9480a44c" /> | <img width="388" height="844" alt="karavanca4" src="https://github.com/user-attachments/assets/982484cc-d3bc-445f-9dd6-6ebb18c7a908" /> |
+
+
 
 | Map & Explore | Extra Interface |
+
 | :---: | :---: |
-| <img src="karavanca3.jpeg" width="250"> | <img src="karavanca1.jpeg" width="250"> |
+
+|<img width="396" height="844" alt="karavanca3" src="https://github.com/user-attachments/assets/0497a57c-ef6a-4edf-b9c6-56464d0eb3ee" /> | <img width="393" height="847" alt="karavanca5" src="https://github.com/user-attachments/assets/334f5abf-b6e8-4f33-a6e6-fd9bd71e57dc" /> |
+
+
+
+---
+
+
+
 ---
 
 ## 🛠️ Technical Architecture & Key Features
