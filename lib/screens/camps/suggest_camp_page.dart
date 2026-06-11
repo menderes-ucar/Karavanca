@@ -4,6 +4,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/admin_push_service.dart';
 import 'map_picker_osm_page.dart';
 
+// ✅ CLEAN CODE IMPORTLARI (Kendi klasör yapına göre yolları kontrol et knk)
+import '../../constants/legal_texts.dart';
+import '../../widgets/legal_disclaimer_sheet.dart';
+
 class SuggestCampPage extends StatefulWidget {
   const SuggestCampPage({super.key});
 
@@ -25,6 +29,9 @@ class _SuggestCampPageState extends State<SuggestCampPage> {
 
   bool _petsAllowed = false;
   bool _freeCancellation = false;
+
+  // ✅ 1. EKLEME: Yasal onay durumunu tutacak state değişkeni
+  bool _suggestLegalAccepted = false;
 
   final Set<String> _selectedAmenities = {};
   final Set<String> _selectedTags = {};
@@ -72,7 +79,29 @@ class _SuggestCampPageState extends State<SuggestCampPage> {
     });
   }
 
+  // ✅ 2. EKLEME: Ortak Bottom Sheet'i tetikleyen fonksiyon
+  Future<void> _openLegalSheet() async {
+    final accepted = await LegalDisclaimerSheet.show(
+      context,
+      contentText: LegalTexts.campDisclaimer,
+      themeColor: _bg,
+      icon: Icons.map_rounded,
+    );
+
+    if (accepted == true) {
+      setState(() => _suggestLegalAccepted = true);
+    }
+  }
+
   Future<void> _send() async {
+    // ✅ 3. EKLEME: Yasal beyan onaylanmadıysa işlemi kesen kontrol
+    if (!_suggestLegalAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Lütfen yasal sorumluluk beyanını onaylayın.")),
+      );
+      return;
+    }
+
     final sb = Supabase.instance.client;
 
     final name = _name.text.trim();
@@ -134,7 +163,6 @@ class _SuggestCampPageState extends State<SuggestCampPage> {
         }).toList(),
         'tags': _selectedTags.toList(),
         'price_per_night': int.tryParse(_price.text.trim()) ?? 0,
-        // ✅ burada "lat,lng" yazacak
         'maps_query': _maps.text.trim().isEmpty ? null : _maps.text.trim(),
 
         'images': [],
@@ -283,7 +311,6 @@ class _SuggestCampPageState extends State<SuggestCampPage> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                const SizedBox(height: 14),
 
                 Row(
                   children: [
@@ -350,7 +377,7 @@ class _SuggestCampPageState extends State<SuggestCampPage> {
 
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
+                  child: const Text(
                     "İmkanlar",
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
@@ -387,7 +414,7 @@ class _SuggestCampPageState extends State<SuggestCampPage> {
 
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
+                  child: const Text(
                     "Etiketler",
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
@@ -420,7 +447,27 @@ class _SuggestCampPageState extends State<SuggestCampPage> {
                   }).toList(),
                 ),
 
-                const SizedBox(height: 18),
+                // ✅ 4. GÜNCELLEME: Gönder Butonunun Hemen Üstüne Temiz Yasal Checkbox Alanı Eklendi
+                const SizedBox(height: 20),
+                CheckboxListTile(
+                  value: _suggestLegalAccepted,
+                  onChanged: (v) {
+                    if (v == true) {
+                      _openLegalSheet();
+                    } else {
+                      setState(() => _suggestLegalAccepted = false);
+                    }
+                  },
+                  title: const Text(
+                    "Önerilen kamp alanına dair paylaşılan bilgi ve içeriklerin yasal sorumluluğunu onaylıyorum. *",
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: _bg,
+                ),
+
+                const SizedBox(height: 14),
                 SizedBox(
                   width: double.infinity,
                   height: 48,

@@ -6,6 +6,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/product_service.dart';
+// ✅ Paket yollarına göre burayı kontrol et knk
+import '../../constants/legal_texts.dart';
+import '../../widgets/legal_disclaimer_sheet.dart';
 
 class ProductCreatePage extends StatefulWidget {
   const ProductCreatePage({super.key});
@@ -28,6 +31,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
   final _phoneCtrl = TextEditingController();
 
   bool _loading = false;
+  bool _acceptedLegal = false; // Yasal onay durumu
 
   // ✅ Storage
   static const _bucket = 'product-images';
@@ -82,6 +86,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
     final base = sb.storage.from(_bucket).getPublicUrl(path);
     return "$base?t=${DateTime.now().millisecondsSinceEpoch}";
   }
+
   Future<Uint8List> _compressImage(XFile file) async {
     final dir = await getTemporaryDirectory();
 
@@ -102,6 +107,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
 
     return result;
   }
+
   Future<void> _pickAndUploadImage() async {
     if (uploading || _loading) return;
     if (images.length >= 15) return;
@@ -165,9 +171,27 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
     }
   }
 
+  Future<void> _openLegalSheet() async {
+    final accepted = await LegalDisclaimerSheet.show(
+      context,
+      contentText: LegalTexts.productDisclaimer,
+      themeColor: kGreen,
+      icon: Icons.gavel_rounded,
+    );
+
+    if (accepted == true) {
+      setState(() => _acceptedLegal = true);
+    }
+  }
+
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
+
+    if (!_acceptedLegal) {
+      _toast('Lütfen fotoğraf ve ilan yasal sorumluluk metnini onaylayın.');
+      return;
+    }
 
     final price = _parsePrice(_priceCtrl.text);
     if (price == null || price <= 0) {
@@ -208,7 +232,6 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  // ---------- UI helpers ----------
   Widget _sectionTitle(String s, IconData ic) => Row(
     children: [
       Container(
@@ -235,8 +258,6 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
 
     return Scaffold(
       backgroundColor: kGreen,
-
-      // ✅ EN SAĞLAM: Buton her telefonda görünür
       bottomNavigationBar: SafeArea(
         top: false,
         child: Container(
@@ -257,15 +278,14 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
               onPressed: busy ? null : _submit,
               loading: _loading,
               text: _loading ? "Gönderiliyor..." : "İlanı Gönder",
-              color: kGreen, // ✅ TEK RENK
+              color: kGreen,
               icon: Icons.publish,
             ),
           ),
         ),
       ),
-
       body: Container(
-        color: kGreen, // ✅ TEK RENK (gradient yok)
+        color: kGreen,
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
@@ -280,14 +300,12 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  // ✅ buton kapamasın diye alt boşluk
                   padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // ✅ hero chips
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
@@ -295,19 +313,18 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                             color: Colors.white.withOpacity(0.72),
                             border: Border.all(color: Colors.white.withOpacity(0.45)),
                           ),
+                          // ✅ Listenin başındaki const kaldırıldı, hata çözüldü
                           child: Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: const [
-                              _Pill(text: "15 Foto", icon: Icons.photo_outlined),
-                              _Pill(text: "Durum", icon: Icons.fact_check_outlined),
-                              _Pill(text: "Tür", icon: Icons.category_outlined),
+                            children: [
+                              const _Pill(text: "15 Foto", icon: Icons.photo_outlined),
+                              const _Pill(text: "Durum", icon: Icons.fact_check_outlined),
+                              const _Pill(text: "Tür", icon: Icons.category_outlined),
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 14),
-
                         _PremiumCard(
                           header: _sectionTitle("Temel Bilgiler", Icons.edit_outlined),
                           child: Column(
@@ -324,7 +341,6 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                                 },
                               ),
                               const SizedBox(height: 12),
-
                               _DropElite(
                                 label: "Tür",
                                 value: _selectedCategoryId,
@@ -340,7 +356,6 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                                 },
                               ),
                               const SizedBox(height: 12),
-
                               _DropElite(
                                 label: "Durum",
                                 value: _selectedConditionId,
@@ -356,7 +371,6 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                                 },
                               ),
                               const SizedBox(height: 12),
-
                               Row(
                                 children: [
                                   Expanded(
@@ -389,7 +403,6 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                                 ],
                               ),
                               const SizedBox(height: 12),
-
                               _FormFieldElite(
                                 controller: _phoneCtrl,
                                 label: "Telefon (opsiyonel)",
@@ -399,9 +412,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 12),
-
                         _PremiumCard(
                           header: _sectionTitle("Açıklama", Icons.notes_outlined),
                           child: _FormFieldElite(
@@ -417,9 +428,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                             },
                           ),
                         ),
-
                         const SizedBox(height: 12),
-
                         _PremiumCard(
                           header: _sectionTitle("Fotoğraflar", Icons.photo_camera_back_outlined),
                           child: Column(
@@ -442,7 +451,6 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                                 ],
                               ),
                               const SizedBox(height: 10),
-
                               LayoutBuilder(
                                 builder: (ctx, c) {
                                   final w = c.maxWidth;
@@ -473,7 +481,6 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                                   );
                                 },
                               ),
-
                               const SizedBox(height: 10),
                               const Text(
                                 "• İlk foto kapak olur. Net foto ekle.",
@@ -482,7 +489,30 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                             ],
                           ),
                         ),
-
+                        const SizedBox(height: 12),
+                        _PremiumCard(
+                          header: _sectionTitle("Yasal Beyan", Icons.gavel_outlined),
+                          child: CheckboxListTile(
+                            value: _acceptedLegal,
+                            onChanged: (v) {
+                              if (v == true) {
+                                _openLegalSheet();
+                              } else {
+                                setState(() => _acceptedLegal = false);
+                              }
+                            },
+                            title: const Text(
+                              "Yüklediğim fotoğrafların telif hakları ve ürünün hukuki sorumluluğu şahsıma aittir. *",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12.5,
+                              ),
+                            ),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
+                            activeColor: kGreen,
+                          ),
+                        ),
                         const SizedBox(height: 16),
                       ],
                     ),
@@ -497,7 +527,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
   }
 }
 
-// ================= UI bits =================
+// ================= TANGIBLE UI CLASSES (Eksiksiz Sınıflar) =================
 
 class _PremiumCard extends StatelessWidget {
   final Widget header;
@@ -712,7 +742,6 @@ class _AddTile extends StatelessWidget {
   }
 }
 
-// ✅ TEK RENK YEŞİL BUTON (gradient yok)
 class _SolidGreenButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool loading;
@@ -743,7 +772,7 @@ class _SolidGreenButton extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
-              color: color, // ✅ TEK RENK
+              color: color,
               boxShadow: [
                 BoxShadow(
                   blurRadius: 16,

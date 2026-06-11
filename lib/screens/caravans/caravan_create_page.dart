@@ -6,6 +6,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/admin_push_service.dart';
+// ✅ CLEAN CODE IMPORTLARI (Kendi klasör yapına göre yolları kontrol et knk)
+import '../../constants/legal_texts.dart';
+import '../../widgets/legal_disclaimer_sheet.dart';
 
 class CaravanCreatePage extends StatefulWidget {
   const CaravanCreatePage({super.key});
@@ -73,6 +76,7 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
     noteCtrl.dispose();
     super.dispose();
   }
+
   Future<Uint8List> _compressImage(XFile file) async {
     final dir = await getTemporaryDirectory();
 
@@ -89,6 +93,7 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
 
     return await result!.readAsBytes();
   }
+
   Future<void> _pickAndUploadImage() async {
     if (uploading || publishing) return;
     if (images.length >= 15) return;
@@ -168,6 +173,20 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
     } finally {
       if (!mounted) return;
       setState(() => uploading = false);
+    }
+  }
+
+  // ✅ 1. EKLEME: Ortak yasal bilgilendirme sheet'ini tetikleyen fonksiyon
+  Future<void> _openLegalSheet() async {
+    final accepted = await LegalDisclaimerSheet.show(
+      context,
+      contentText: LegalTexts.caravanDisclaimer,
+      themeColor: kMain,
+      icon: Icons.rv_hookup_rounded,
+    );
+
+    if (accepted == true) {
+      setState(() => acceptedRules = true);
     }
   }
 
@@ -279,8 +298,6 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
 
     return Scaffold(
       backgroundColor: kMain,
-
-      // ✅ SAĞLAM: her telefonda taşmayan, görünür bottom bar
       bottomNavigationBar: SafeArea(
         top: false,
         child: Container(
@@ -301,14 +318,13 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
               onPressed: busy ? null : _publish,
               loading: publishing,
               text: publishing ? "Gönderiliyor..." : "İlanı Yayınla",
-              color: kMain, // ✅ TEK RENK
+              color: kMain,
             ),
           ),
         ),
       ),
-
       body: Container(
-        color: kMain, // ✅ TEK RENK (GRADIENT YOK)
+        color: kMain,
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
@@ -424,7 +440,6 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
                       _GlassCard(
                         title: "İlan Fotoğrafları",
                         icon: Icons.photo_camera_back_outlined,
@@ -489,9 +504,7 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 12),
-
                       _GlassCard(
                         title: "İlan Notu",
                         icon: Icons.sticky_note_2_outlined,
@@ -513,9 +526,7 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 12),
-
                       _GlassCard(
                         title: "Adres Bilgileri",
                         icon: Icons.place_outlined,
@@ -526,14 +537,14 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
                           onChanged: (v) => setState(() => city = v),
                         ),
                       ),
-
                       const SizedBox(height: 12),
 
+                      // ✅ 2. GÜNCELLEME: Kurallar Kartı Ortak Bilgilendirme Sheet'ine Tetiklenecek Şekilde Ayarlandı
                       _GlassCard(
-                        title: "Kurallar",
+                        title: "Kurallar ve Yasal Sorumluluk",
                         icon: Icons.security_outlined,
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.55),
                             borderRadius: BorderRadius.circular(14),
@@ -541,17 +552,26 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
                           ),
                           child: CheckboxListTile(
                             value: acceptedRules,
-                            onChanged: (v) => setState(() => acceptedRules = v ?? false),
+                            onChanged: (v) {
+                              if (v == true) {
+                                _openLegalSheet();
+                              } else {
+                                setState(() => acceptedRules = false);
+                              }
+                            },
                             title: const Text(
-                              "İlan verme kurallarını okudum, onaylıyorum.",
-                              style: TextStyle(fontWeight: FontWeight.w800),
+                              "İlan ve fotoğraf yükleme yasal sorumluluk metnini okudum, onaylıyorum. *",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 12.5,
+                              ),
                             ),
                             controlAffinity: ListTileControlAffinity.leading,
-                            contentPadding: EdgeInsets.zero,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                            activeColor: kMain,
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 16),
                     ],
                   ),
@@ -565,7 +585,7 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
   }
 }
 
-// ================== UI PIECES ==================
+// ================== TANGIBLE UI PIECES (Eksiksiz Sınıflar) ==================
 
 class _GlassCard extends StatelessWidget {
   final String title;
@@ -772,7 +792,6 @@ class _AddTile extends StatelessWidget {
   }
 }
 
-// ✅ BUTON: kesin görünür (Material + Container)
 class _SolidPublishButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool loading;
@@ -801,7 +820,7 @@ class _SolidPublishButton extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
-              color: color, // ✅ TEK RENK
+              color: color,
               boxShadow: [
                 BoxShadow(
                   blurRadius: 16,
