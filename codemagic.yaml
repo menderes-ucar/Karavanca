@@ -3,6 +3,7 @@ workflows:
     name: Karavanca iOS Build Workflow
     max_build_duration: 60
     instance_type: mac_mini_m1
+
     environment:
       groups:
         - supabase_credentials
@@ -12,22 +13,33 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.mndrs.karavanis
+
     triggering:
       events:
         - push
       branch_patterns:
         - pattern: 'main'
+
     scripts:
-      - name: Create .env file from Codemagic Environment Variables
+      - name: Create .env file
         script: |
           echo "SUPABASE_URL=$SUPABASE_URL" > .env
           echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env
-      - name: Set up local properties and dependencies
+
+      - name: Get dependencies
         script: |
           flutter pub get
-      - name: Flutter build iOS (Archive)
+
+      - name: Set up code signing
         script: |
-          flutter build ios --release --no-codesign
+          xcode-project use-profiles
+
+      - name: Build IPA
+        script: |
+          flutter build ipa --release
+
     artifacts:
-      - build/ios/iphoneos/*.app
-      - build/ios/iphoneos/*.ipa
+      - build/ios/ipa/*.ipa
