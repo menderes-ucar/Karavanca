@@ -30,7 +30,7 @@ workflows:
         script: |
           flutter pub get
 
-      - name: Set up code signing
+      - name: Use signing profiles
         script: |
           xcode-project use-profiles
 
