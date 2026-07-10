@@ -26,13 +26,23 @@ workflows:
           echo "SUPABASE_URL=$SUPABASE_URL" > .env
           echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env
 
-      - name: Get dependencies
+      - name: Get Flutter packages
         script: |
           flutter pub get
 
+      - name: Install CocoaPods
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+
+      - name: Configure code signing
+        script: |
+          xcode-project use-profiles
+
       - name: Build IPA
         script: |
-          flutter build ipa --release
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
 
     artifacts:
       - build/ios/ipa/*.ipa
