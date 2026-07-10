@@ -1,7 +1,6 @@
 import Flutter
 import UIKit
 import FirebaseCore
-import FirebaseMessaging
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -11,10 +10,6 @@ import FirebaseMessaging
   ) -> Bool {
 
     FirebaseApp.configure()
-
-    if #available(iOS 10.0, *) {
-      UNUserNotificationCenter.current().delegate = self
-    }
 
     GeneratedPluginRegistrant.register(with: self)
 
