@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/admin_push_service.dart';
+import '../../services/credit_service.dart';
 // ✅ CLEAN CODE IMPORTLARI (Kendi klasör yapına göre yolları kontrol et knk)
 import '../../constants/legal_texts.dart';
 import '../../widgets/legal_disclaimer_sheet.dart';
@@ -25,6 +26,8 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
   final descCtrl = TextEditingController();
   final priceCtrl = TextEditingController();
   final noteCtrl = TextEditingController();
+
+  final _creditService = CreditService();
 
   bool acceptedRules = false;
 
@@ -190,6 +193,27 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
     }
   }
 
+  // ✅ YENİ: Kredi yetersizse gösterilecek dialog
+  Future<void> _showInsufficientCreditsDialog() async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Yetersiz Kredi"),
+        content: Text(
+          "Karavan ilanı yayınlamak için ${CreditService.caravanListingCost} kredi gerekiyor. "
+              "Mevcut kredin yetersiz görünüyor. Profil sayfandan kredi yükleyebilirsin.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Tamam"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _publish() async {
     if (uploading || publishing) return;
 
@@ -240,6 +264,16 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
     setState(() => publishing = true);
 
     try {
+      // ✅ YENİ: Kredi kontrolü — yetersizse ilan oluşturulmadan durdur
+      final hasCredits =
+      await _creditService.hasEnoughCredits(CreditService.caravanListingCost);
+      if (!hasCredits) {
+        if (!mounted) return;
+        setState(() => publishing = false);
+        _showInsufficientCreditsDialog();
+        return;
+      }
+
       final row = await sb
           .from('caravans')
           .insert({
@@ -260,6 +294,19 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
           .single();
       final caravanId = row['id'] as String;
 
+      // ✅ YENİ: İlan oluşturulduktan sonra kredi düş.
+      // Düşürme başarısız olursa (nadir race condition), ilanı geri al.
+      try {
+        await _creditService.deductForListing(
+          amount: CreditService.caravanListingCost,
+          listingType: 'caravan',
+          referenceId: caravanId,
+        );
+      } catch (e) {
+        await sb.from('caravans').delete().eq('id', caravanId);
+        rethrow;
+      }
+
       await AdminPushService().sendToAdmins(
         title: 'Yeni karavan ilanı var 🚐',
         body: '$title • $city onay bekliyor',
@@ -276,9 +323,13 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Yayınlama hatası: $e")),
-      );
+      if (e is InsufficientCreditsException) {
+        _showInsufficientCreditsDialog();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Yayınlama hatası: $e")),
+        );
+      }
     } finally {
       if (!mounted) return;
       setState(() => publishing = false);

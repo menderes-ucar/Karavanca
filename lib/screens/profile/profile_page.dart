@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../credits/credit_history_page.dart';
+import '../credits/credit_packages_page.dart';
 import 'admin_hub_page.dart';
 import 'legal_pages.dart';
 import 'my_caravans_page.dart';
 import '../products/product_my_listings_page.dart';
+import '../../services/credit_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -26,6 +29,10 @@ class _ProfilePageState extends State<ProfilePage> {
   String memberSinceText = "-";
   bool isAdmin = false;
 
+  // ✅ YENİ: gerçek kredi bilgisi
+  int credits = 0;
+  final _creditService = CreditService();
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
           fullName = "-";
           memberSinceText = "-";
           isAdmin = false;
+          credits = 0;
           loadingProfile = false;
         });
         return;
@@ -67,11 +75,20 @@ class _ProfilePageState extends State<ProfilePage> {
         debugPrint("❌ is_admin rpc error: $e");
       }
 
+      // ✅ YENİ: gerçek kredi çekiliyor
+      int creditsValue = 0;
+      try {
+        creditsValue = await _creditService.getMyCredits();
+      } catch (e) {
+        debugPrint("❌ credits fetch error: $e");
+      }
+
       if (!mounted) return;
       setState(() {
         fullName = name.isEmpty ? "Kullanıcı" : name;
         memberSinceText = _fmtTrDate(createdAt) ?? "-";
         isAdmin = adminFlag;
+        credits = creditsValue;
         loadingProfile = false;
       });
     } catch (e, st) {
@@ -210,7 +227,20 @@ class _ProfilePageState extends State<ProfilePage> {
                         title: "Paket Satın Al",
                         subtitle: "İlan hakkı ve görünürlük paketleri",
                         color: Colors.purple,
-                        onTap: () => _soon("Paketler yakında aktif olacak."),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CreditPackagesPage()),
+                        ),
+                      ),
+                      _MenuAction(
+                        icon: Icons.receipt_long_outlined,
+                        title: "Kredi Hareketlerim",
+                        subtitle: "Kredi kazanma ve harcama geçmişin",
+                        color: ProfilePage.turquoise,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CreditHistoryPage()),
+                        ),
                       ),
                       _MenuAction(
                         icon: Icons.info_outline,
@@ -443,7 +473,8 @@ class _ProfilePageState extends State<ProfilePage> {
       _StatItem(
         icon: Icons.credit_score,
         title: "İlan Kredisi",
-        value: "100",
+        // ✅ GÜNCELLENDİ: artık gerçek kredi
+        value: credits.toString(),
         color: ProfilePage.turquoise,
       ),
       _StatItem(

@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/product_service.dart';
+import '../../services/credit_service.dart';
 // ✅ Paket yollarına göre burayı kontrol et knk
 import '../../constants/legal_texts.dart';
 import '../../widgets/legal_disclaimer_sheet.dart';
@@ -22,6 +23,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
   static const Color kGreen = Color(0xFF16A34A);
 
   final _service = ProductService();
+  final _creditService = CreditService();
   final _formKey = GlobalKey<FormState>();
 
   final _titleCtrl = TextEditingController();
@@ -184,6 +186,27 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
     }
   }
 
+  // ✅ YENİ: Kredi yetersizse gösterilecek dialog
+  Future<void> _showInsufficientCreditsDialog() async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Yetersiz Kredi"),
+        content: Text(
+          "Ürün ilanı yayınlamak için ${CreditService.productListingCost} kredi gerekiyor. "
+              "Mevcut kredin yetersiz görünüyor. Profil sayfandan kredi yükleyebilirsin.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Tamam"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
@@ -205,7 +228,17 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
 
     setState(() => _loading = true);
     try {
-      await _service.create(
+      // ✅ YENİ: Kredi kontrolü — yetersizse ilan oluşturulmadan durdur
+      final hasCredits =
+      await _creditService.hasEnoughCredits(CreditService.productListingCost);
+      if (!hasCredits) {
+        if (!mounted) return;
+        setState(() => _loading = false);
+        _showInsufficientCreditsDialog();
+        return;
+      }
+
+      final productId = await _service.create(
         title: _titleCtrl.text.trim(),
         categoryId: categoryId,
         categoryTitle: categoryTitle,
@@ -217,12 +250,29 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
         condition: conditionId,
       );
 
+      // ✅ YENİ: İlan oluşturulduktan sonra kredi düş.
+      // Düşürme başarısız olursa (nadir race condition), ilanı geri al.
+      try {
+        await _creditService.deductForListing(
+          amount: CreditService.productListingCost,
+          listingType: 'product',
+          referenceId: productId,
+        );
+      } catch (e) {
+        await Supabase.instance.client.from('products').delete().eq('id', productId);
+        rethrow;
+      }
+
       if (!mounted) return;
       _toast('Ürün ilanı gönderildi (pending).');
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _toast('Hata: $e');
+      if (e is InsufficientCreditsException) {
+        _showInsufficientCreditsDialog();
+      } else {
+        _toast('Hata: $e');
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }

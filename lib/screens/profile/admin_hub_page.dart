@@ -5,6 +5,7 @@ import 'admin_camps_page.dart';
 import 'admin_suggestions_page.dart';
 import 'admin_caravans_page.dart';
 import 'admin_products_page.dart';
+import 'admin_credits_page.dart';
 
 class AdminHubPage extends StatefulWidget {
   const AdminHubPage({super.key});
@@ -113,6 +114,20 @@ class _AdminHubPageState extends State<AdminHubPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AdminProductsPage()),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+          // ✅ YENİ: Kredi Yönetimi
+          ListTile(
+            leading: const Icon(Icons.credit_score),
+            title: const Text("Kredi Yönetimi"),
+            subtitle: const Text("Kullanıcılara manuel kredi yükle / düş"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminCreditsPage()),
               );
             },
           ),
