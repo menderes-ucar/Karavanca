@@ -9,8 +9,8 @@ workflows:
         - supabase_credentials
 
       vars:
-        XCODE_WORKSPACE: "ios/Runner.xcworkspace"
-        XCODE_SCHEME: "Runner"
+        XCODE_WORKSPACE: ios/Runner.xcworkspace
+        XCODE_SCHEME: Runner
 
       flutter: stable
       xcode: latest
@@ -26,24 +26,14 @@ workflows:
           echo "SUPABASE_URL=$SUPABASE_URL" > .env
           echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env
 
-      - name: Get Flutter packages
-        script: |
-          flutter pub get
+      - name: Get dependencies
+        script: flutter pub get
 
-      - name: Install CocoaPods
-        script: |
-          find . -name "Podfile" -execdir pod install \;
-
-      - name: Configure code signing
-        script: |
-          xcode-project use-profiles
+      - name: Use signing profiles
+        script: xcode-project use-profiles
 
       - name: Build IPA
-        script: |
-          xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
-            --scheme "$XCODE_SCHEME"
+        script: flutter build ipa --release
 
     artifacts:
       - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
