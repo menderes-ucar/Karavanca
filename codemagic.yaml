@@ -7,18 +7,19 @@ workflows:
     environment:
       groups:
         - supabase_credentials
-
       vars:
         XCODE_WORKSPACE: ios/Runner.xcworkspace
         XCODE_SCHEME: Runner
-
       flutter: stable
       xcode: latest
       cocoapods: default
-
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.mndrs.karavanis
+
+    # CACHE MOTORUNU TAMAMEN KAPATIYORUZ
+    caching:
+      cache_paths: []
 
     scripts:
       - name: Create .env file
@@ -33,7 +34,6 @@ workflows:
       - name: Reset CocoaPods Shims
         script: |
           cd ios
-          # Sunucudaki tüm olası kilitleri ve eski bağımlılık ağaçlarını fiziksel olarak temizliyoruz
           rm -rf Pods Podfile.lock .symlinks Runner.xcworkspace
           pod cache clean --all
           pod install --repo-update
