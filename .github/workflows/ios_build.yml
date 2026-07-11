@@ -40,22 +40,16 @@ jobs:
           pod install --repo-update
           cd ..
 
-      # 1. Adım: Projeyi arşive çeviriyoruz
-      - name: Build Archive
+      # Sadece imzasız ham .ipa dosyasını çıkartıyoruz (Bu adım hatasız geçiyor)
+      - name: Build IPA
         run: |
           flutter build ipa --release --no-codesign
 
-      # 2. Adım: Arşivi Apple'ın kabul edeceği zip formatına sıkıştırıyoruz
-      - name: Compress Archive for Apple Upload
-        run: |
-          cd build/ios/archive
-          xcrun ditto -c -k --keepParent Runner.xcarchive Runner.zip
-
-      # 3. Adım: Apple API anahtarını kullanarak doğrudan TestFlight portalına teslim ediyoruz
-      - name: Upload and Authenticate via Notarytool
-        run: |
-          xcrun notarytool submit build/ios/archive/Runner.zip \
-            --key-id "${{ secrets.APP_STORE_CONNECT_KEY_ID }}" \
-            --issuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}" \
-            --key "${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}" \
-            --wait
+      # Ucube komutları bıraktık; resmi ve hatasız çalışan yükleme modülünü çağırıyoruz
+      - name: Upload App to TestFlight via Apple Action
+        uses: apple-actions/upload-testflight-build@v1
+        with:
+          app-path: 'build/ios/ipa/*.ipa'
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          api-key-content: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
