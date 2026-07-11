@@ -1,0 +1,50 @@
+name: Flutter iOS Build
+
+on:
+  push:
+    branches:
+      - main  # Kodunu main branchine pushladığın an otomatik tetiklenecek
+
+jobs:
+  build:
+    name: Build iOS App (.ipa)
+    runs-on: macos-latest  # GitHub'ın kendi resmi Mac sunucusu ayağa kalkıyor
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Create .env file
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Pod Clean and Install
+        run: |
+          cd ios
+          pod cache clean --all
+          pod install --repo-update
+          cd ..
+
+      - name: Build IPA without signing
+        run: flutter build ipa --no-codesign
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: karavanis-build
+          path: build/ios/archive/*.xcarchive
