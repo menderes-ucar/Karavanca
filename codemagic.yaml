@@ -10,12 +10,12 @@ workflows:
       vars:
         XCODE_WORKSPACE: ios/Runner.xcworkspace
         XCODE_SCHEME: Runner
-        flutter: stable
-        xcode: latest
-        cocoapods: default
-        ios_signing:
-          distribution_type: app_store
-          bundle_identifier: com.mndrs.karavanis
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.mndrs.karavanis
 
     scripts:
       - name: Sunucu Temizliği ve İzin Ayarları
@@ -49,7 +49,6 @@ workflows:
         script: |
           xcode-project build-ipa --workspace "$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
 
-      # ADIM 3: WINDOWS'U DA ARAYÜZÜ DE ARADAN ÇIKARAN, IPA'YI DOĞRUDAN MAC SUNUCUSUNDAN APPLE'A FIRLATAN SCRİPT
       - name: Publish to TestFlight via CLI
         script: |
           app-store-connect publish \
