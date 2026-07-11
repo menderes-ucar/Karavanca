@@ -7,27 +7,21 @@ workflows:
     environment:
       groups:
         - supabase_credentials
-
       vars:
         XCODE_WORKSPACE: ios/Runner.xcworkspace
         XCODE_SCHEME: Runner
-
-      flutter: stable
-      xcode: latest
-      cocoapods: default
-
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.mndrs.karavanis
+        flutter: stable
+        xcode: latest
+        cocoapods: default
+        ios_signing:
+          distribution_type: app_store
+          bundle_identifier: com.mndrs.karavanis
 
     scripts:
       - name: Sunucu Temizliği ve İzin Ayarları
         script: |
-          # Önceki tüm cache kalıntılarını ve Xcode türetilmiş verilerini sunucudan tamamen kazıyoruz
           rm -rf ~/Library/Developer/Xcode/DerivedData/*
           rm -rf ios/Pods ios/Podfile.lock ios/.symlinks
-          
-          # Git'ten gelen Generated dosyalarının izinlerini sunucuda tamamen serbest bırakıyoruz
           chmod 777 ios/Runner/GeneratedPluginRegistrant.* || true
 
       - name: Create .env file
@@ -41,9 +35,7 @@ workflows:
 
       - name: Reset CocoaPods and Force Generate Registrant
         script: |
-          # Flutter'a sunucu üzerinde köprü dosyalarını zorla yeniden ürettiriyoruz
           flutter build ios --config-only
-          
           cd ios
           pod cache clean --all
           pod install --repo-update
@@ -57,13 +49,13 @@ workflows:
         script: |
           xcode-project build-ipa --workspace "$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
 
+      # ADIM 3: WINDOWS'U DA ARAYÜZÜ DE ARADAN ÇIKARAN, IPA'YI DOĞRUDAN MAC SUNUCUSUNDAN APPLE'A FIRLATAN SCRİPT
+      - name: Publish to TestFlight via CLI
+        script: |
+          app-store-connect publish \
+            --submit-to-testflight \
+            --bundle-identifier "com.mndrs.karavanis"
+
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-
-    publishing:
-      app_store_connect:
-        auth: integration
-
-        submit_to_testflight: true
-        submit_to_app_store: false
