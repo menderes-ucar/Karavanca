@@ -1,14 +1,14 @@
-name: Flutter iOS Build
+name: Flutter iOS Build & App Store Upload
 
 on:
   push:
     branches:
-      - main  # Kodunu main branchine pushladığın an otomatik tetiklenecek
+      - main
 
 jobs:
   build:
-    name: Build iOS App (.ipa)
-    runs-on: macos-latest  # GitHub'ın kendi resmi Mac sunucusu ayağa kalkıyor
+    name: Build & Publish to TestFlight
+    runs-on: macos-latest
 
     steps:
       - name: Checkout repository
@@ -33,6 +33,12 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Apple Sertifikalarını Sunucuya Tanımlama Adımı
+      - name: Install Apple API Key
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}" > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+
       - name: Pod Clean and Install
         run: |
           cd ios
@@ -40,11 +46,16 @@ jobs:
           pod install --repo-update
           cd ..
 
-      - name: Build IPA without signing
-        run: flutter build ipa --no-codesign
+      # Projeyi resmi olarak imzalayıp .ipa dosyasını üretme adımı
+      - name: Build IPA
+        run: |
+          flutter build ipa --release
 
-      - name: Upload IPA Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: karavanis-build
-          path: build/ios/archive/*.xcarchive
+      # ÜRETİLEN DOSYAYI DOĞRUDAN APP STORE CONNECT'E FIRLATAN ADIM
+      - name: Upload to App Store Connect
+        run: |
+          xcrun altool --upload-app \
+            --type ios \
+            --file build/ios/ipa/*.ipa \
+            --apiKey "${{ secrets.APP_STORE_CONNECT_KEY_ID }}" \
+            --apiIssuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
