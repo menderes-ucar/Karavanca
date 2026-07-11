@@ -21,12 +21,14 @@ workflows:
         bundle_identifier: com.mndrs.karavanis
 
     scripts:
-      - name: Hard Clean Sunucu Hafızası
+      - name: Sunucu Temizliği ve İzin Ayarları
         script: |
-          # Sunucunun daha önce hafızasında tuttuğu ne kadar çöp veya eski haritalama varsa uçuruyoruz
+          # Önceki tüm cache kalıntılarını ve Xcode türetilmiş verilerini sunucudan tamamen kazıyoruz
           rm -rf ~/Library/Developer/Xcode/DerivedData/*
-          rm -rf .dart_tool
           rm -rf ios/Pods ios/Podfile.lock ios/.symlinks
+          
+          # Git'ten gelen Generated dosyalarının izinlerini sunucuda tamamen serbest bırakıyoruz
+          chmod 777 ios/Runner/GeneratedPluginRegistrant.* || true
 
       - name: Create .env file
         script: |
@@ -37,8 +39,11 @@ workflows:
         script: |
           flutter pub get
 
-      - name: Reset CocoaPods Shims
+      - name: Reset CocoaPods and Force Generate Registrant
         script: |
+          # Flutter'a sunucu üzerinde köprü dosyalarını zorla yeniden ürettiriyoruz
+          flutter build ios --config-only
+          
           cd ios
           pod cache clean --all
           pod install --repo-update
