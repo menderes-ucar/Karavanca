@@ -4,6 +4,10 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m1
 
+    # BURASI ÇOK KRİTİK: Hata veren entegrasyon bağını buraya ekliyoruz
+    integrations:
+      app_store_connect: "Menderes Uçar" # <--- BURAYA DİKKAT! App Store Connect'te bağladığın API Key'in veya entegrasyonun tam adı neyse birebir onu yaz (Örn: "Menderes Uçar", "karavanca-connect" veya panelde ne isim verdiysen)
+
     environment:
       groups:
         - supabase_credentials
@@ -23,11 +27,8 @@ workflows:
     scripts:
       - name: Sunucu Temizliği ve İzin Ayarları
         script: |
-          # Önceki tüm cache kalıntılarını ve Xcode türetilmiş verilerini sunucudan tamamen kazıyoruz
           rm -rf ~/Library/Developer/Xcode/DerivedData/*
           rm -rf ios/Pods ios/Podfile.lock ios/.symlinks
-          
-          # Git'ten gelen Generated dosyalarının izinlerini sunucuda tamamen serbest bırakıyoruz
           chmod 777 ios/Runner/GeneratedPluginRegistrant.* || true
 
       - name: Create .env file
@@ -41,9 +42,7 @@ workflows:
 
       - name: Reset CocoaPods and Force Generate Registrant
         script: |
-          # Flutter'a sunucu üzerinde köprü dosyalarını zorla yeniden ürettiriyoruz
           flutter build ios --config-only
-          
           cd ios
           pod cache clean --all
           pod install --repo-update
