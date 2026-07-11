@@ -49,11 +49,10 @@ workflows:
         script: |
           xcode-project build-ipa --workspace "$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
 
+      # Yanlış parametreleri kaldırıp komutu yalın hale getirdik
       - name: Publish to TestFlight via CLI
         script: |
-          app-store-connect publish \
-            --submit-to-testflight \
-            --bundle-identifier "com.mndrs.karavanis"
+          app-store-connect publish
 
     artifacts:
       - build/ios/ipa/*.ipa
