@@ -33,12 +33,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Apple Sertifikalarını Sunucuya Tanımlama Adımı
-      - name: Install Apple API Key
-        run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}" > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
-
       - name: Pod Clean and Install
         run: |
           cd ios
@@ -46,16 +40,16 @@ jobs:
           pod install --repo-update
           cd ..
 
-      # Projeyi resmi olarak imzalayıp .ipa dosyasını üretme adımı
+      # Fastlane saçmalığını aradan çıkardık, sadece imzasız derleme alıyoruz
       - name: Build IPA
         run: |
-          flutter build ipa --release
+          flutter build ipa --release --no-codesign
 
-      # ÜRETİLEN DOSYAYI DOĞRUDAN APP STORE CONNECT'E FIRLATAN ADIM
+      # Resmi Apple API anahtarı ile üretilen paketi doğrudan App Store'a fırlatıyoruz
       - name: Upload to App Store Connect
         run: |
           xcrun altool --upload-app \
             --type ios \
-            --file build/ios/ipa/*.ipa \
+            --file build/ios/archive/*.xcarchive \
             --apiKey "${{ secrets.APP_STORE_CONNECT_KEY_ID }}" \
             --apiIssuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
