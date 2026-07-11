@@ -40,16 +40,22 @@ jobs:
           pod install --repo-update
           cd ..
 
-      # Fastlane saçmalığını aradan çıkardık, sadece imzasız derleme alıyoruz
-      - name: Build IPA
+      # 1. Adım: Projeyi arşive çeviriyoruz
+      - name: Build Archive
         run: |
           flutter build ipa --release --no-codesign
 
-      # Resmi Apple API anahtarı ile üretilen paketi doğrudan App Store'a fırlatıyoruz
-      - name: Upload to App Store Connect
+      # 2. Adım: Arşivi Apple'ın kabul edeceği zip formatına sıkıştırıyoruz
+      - name: Compress Archive for Apple Upload
         run: |
-          xcrun altool --upload-app \
-            --type ios \
-            --file build/ios/archive/*.xcarchive \
-            --apiKey "${{ secrets.APP_STORE_CONNECT_KEY_ID }}" \
-            --apiIssuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
+          cd build/ios/archive
+          xcrun ditto -c -k --keepParent Runner.xcarchive Runner.zip
+
+      # 3. Adım: Apple API anahtarını kullanarak doğrudan TestFlight portalına teslim ediyoruz
+      - name: Upload and Authenticate via Notarytool
+        run: |
+          xcrun notarytool submit build/ios/archive/Runner.zip \
+            --key-id "${{ secrets.APP_STORE_CONNECT_KEY_ID }}" \
+            --issuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}" \
+            --key "${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}" \
+            --wait
