@@ -26,23 +26,47 @@ workflows:
           echo "SUPABASE_URL=$SUPABASE_URL" > .env
           echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env
 
-      - name: Get dependencies
+      - name: Clean and get Flutter packages
         script: |
+          flutter clean
           flutter pub get
+
+      - name: Show Flutter plugins
+        script: |
+          echo "========== FLUTTER PLUGINS =========="
+          cat .flutter-plugins-dependencies || true
+          echo "====================================="
 
       - name: Install CocoaPods dependencies
         script: |
           cd ios
-          pod install --repo-update
+
+          rm -rf Pods
+          rm -f Podfile.lock
+
+          pod cache clean --all
+          pod repo update
+          pod install --repo-update --verbose
+
+          echo "========== PODS DIRECTORY =========="
+          ls -la Pods || true
+          echo "===================================="
+
+          echo "========== PODFILE LOCK =========="
+          cat Podfile.lock || true
+          echo "=================================="
+
           cd ..
 
-      - name: Use signing profiles
+      - name: Configure code signing
         script: |
           xcode-project use-profiles
 
       - name: Build IPA
         script: |
-          xcode-project build-ipa --workspace "$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
 
     artifacts:
       - build/ios/ipa/*.ipa

@@ -25,10 +25,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
@@ -55,19 +52,18 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDjo1ZltJWUC8OSG4yKVUtYuLZnI298JdU',
-    appId: '1:711655799596:android:f29232a70007725ecfca89',
+    appId: '1:711655799596:android:90c26916a256c0becfca89',
     messagingSenderId: '711655799596',
     projectId: 'kamp-karavan-79a7e',
     storageBucket: 'kamp-karavan-79a7e.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDMy3_2hILNiN-UFLPuUuzrxv_g69XVznY',
-    appId: '1:711655799596:ios:be8f48d94debdcc2cfca89',
+    appId: '1:711655799596:ios:2a02a8ce806dd586cfca89',
     messagingSenderId: '711655799596',
     projectId: 'kamp-karavan-79a7e',
     storageBucket: 'kamp-karavan-79a7e.firebasestorage.app',
-    iosBundleId: 'com.example.karavanis',
+    iosBundleId: 'com.mndrs.karavanis',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
@@ -79,5 +75,12 @@ class DefaultFirebaseOptions {
     storageBucket: 'kamp-karavan-79a7e.firebasestorage.app',
     measurementId: 'G-67CL9ER7CF',
   );
-
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDMy3_2hILNiN-UFLPuUuzrxv_g69XVznY',
+    appId: '1:711655799596:ios:2a02a8ce806dd586cfca89',
+    messagingSenderId: '711655799596',
+    projectId: 'kamp-karavan-79a7e',
+    storageBucket: 'kamp-karavan-79a7e.firebasestorage.app',
+    iosBundleId: 'com.mndrs.karavanis',
+  );
 }
