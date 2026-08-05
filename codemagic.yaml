@@ -5,6 +5,8 @@ workflows:
     instance_type: mac_mini_m1
 
     environment:
+      integrations:
+        - app_store_connect # Codemagic panelindeki App Store Connect entegrasyonunu bağlar
       groups:
         - supabase_credentials
       vars:
