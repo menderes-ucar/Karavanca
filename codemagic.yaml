@@ -7,7 +7,7 @@ workflows:
     environment:
       groups:
         - supabase_credentials
-        - app_store_credentials # Codemagic'te oluşturduğun grup
+        - app_store_credentials
       vars:
         XCODE_WORKSPACE: ios/Runner.xcworkspace
         XCODE_SCHEME: Runner
@@ -56,7 +56,7 @@ workflows:
 
     publishing:
       app_store_connect:
-        auth: key
+        auth: integration
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         key_id: $APP_STORE_CONNECT_KEY_ID
         private_key: $APP_STORE_CONNECT_PRIVATE_KEY
