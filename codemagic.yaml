@@ -4,9 +4,10 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m1
 
+    integrations:
+      app_store_connect: Menderes Uçar # veya Codemagic Integrations sayfasındaki App Store Connect entegrasyon adın
+
     environment:
-      integrations:
-        - app_store_connect # Codemagic panelindeki App Store Connect entegrasyonunu bağlar
       groups:
         - supabase_credentials
       vars:
