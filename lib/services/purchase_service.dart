@@ -115,7 +115,7 @@ class PurchaseService {
   /// "satın aldım" demek yeterli olsaydı herkes ücretsiz kredi ekleyebilirdi.
   Future<void> _verifyAndGrant(PurchaseDetails purchase) async {
     try {
-      final platform = Platform.isAndroid ? 'android' : 'ios';
+      final platform = defaultTargetPlatform == TargetPlatform.android ? 'android' : 'ios';
 
       final res = await _sb.functions.invoke(
         'verify-purchase',
