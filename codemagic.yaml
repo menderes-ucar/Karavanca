@@ -4,12 +4,10 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m1
 
-    integrations:
-      app_store_connect: karavanca_distribution # veya Developer Portal Key Name
-
     environment:
       groups:
         - supabase_credentials
+        - app_store_credentials # Codemagic'te oluşturduğun grup
       vars:
         XCODE_WORKSPACE: ios/Runner.xcworkspace
         XCODE_SCHEME: Runner
@@ -58,5 +56,8 @@ workflows:
 
     publishing:
       app_store_connect:
-        auth: integration
+        auth: key
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        key_id: $APP_STORE_CONNECT_KEY_ID
+        private_key: $APP_STORE_CONNECT_PRIVATE_KEY
         submit_to_testflight: true
