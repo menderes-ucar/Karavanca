@@ -49,11 +49,10 @@ workflows:
         script: |
           xcode-project build-ipa --workspace "$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
 
+      - name: Publish to App Store Connect / TestFlight
+        script: |
+          app-store-connect publish --path $(find build/ios/ipa -name "*.ipa" | head -n 1)
+
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-
-    publishing:
-      app_store_connect:
-        auth: integration
-        submit_to_testflight: true
