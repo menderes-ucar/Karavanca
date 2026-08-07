@@ -17,7 +17,7 @@ workflows:
         bundle_identifier: com.mndrs.karavanis
 
       flutter: stable
-      xcode: 16.4
+      xcode: latest
       cocoapods: default
 
     scripts:
