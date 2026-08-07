@@ -5,9 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../constants/app_config.dart';
 import '../../services/admin_push_service.dart';
 import '../../services/credit_service.dart';
-// ✅ CLEAN CODE IMPORTLARI (Kendi klasör yapına göre yolları kontrol et knk)
 import '../../constants/legal_texts.dart';
 import '../../widgets/legal_disclaimer_sheet.dart';
 
@@ -179,7 +179,6 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
     }
   }
 
-  // ✅ 1. EKLEME: Ortak yasal bilgilendirme sheet'ini tetikleyen fonksiyon
   Future<void> _openLegalSheet() async {
     final accepted = await LegalDisclaimerSheet.show(
       context,
@@ -193,7 +192,7 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
     }
   }
 
-  // ✅ YENİ: Kredi yetersizse gösterilecek dialog
+  // ✅ Kredi yetersizse gösterilecek dialog
   Future<void> _showInsufficientCreditsDialog() async {
     if (!mounted) return;
     await showDialog(
@@ -264,14 +263,15 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
     setState(() => publishing = true);
 
     try {
-      // ✅ YENİ: Kredi kontrolü — yetersizse ilan oluşturulmadan durdur
-      final hasCredits =
-      await _creditService.hasEnoughCredits(CreditService.caravanListingCost);
-      if (!hasCredits) {
-        if (!mounted) return;
-        setState(() => publishing = false);
-        _showInsufficientCreditsDialog();
-        return;
+      // ✅ Kredi kontrolü — Sistem pasifse atlanır
+      if (AppConfig.isCreditSystemActive) {
+        final hasCredits = await _creditService.hasEnoughCredits(CreditService.caravanListingCost);
+        if (!hasCredits) {
+          if (!mounted) return;
+          setState(() => publishing = false);
+          _showInsufficientCreditsDialog();
+          return;
+        }
       }
 
       final row = await sb
@@ -294,17 +294,18 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
           .single();
       final caravanId = row['id'] as String;
 
-      // ✅ YENİ: İlan oluşturulduktan sonra kredi düş.
-      // Düşürme başarısız olursa (nadir race condition), ilanı geri al.
-      try {
-        await _creditService.deductForListing(
-          amount: CreditService.caravanListingCost,
-          listingType: 'caravan',
-          referenceId: caravanId,
-        );
-      } catch (e) {
-        await sb.from('caravans').delete().eq('id', caravanId);
-        rethrow;
+      // ✅ İlan oluşturulduktan sonra kredi düş — Sistem pasifse atlanır
+      if (AppConfig.isCreditSystemActive) {
+        try {
+          await _creditService.deductForListing(
+            amount: CreditService.caravanListingCost,
+            listingType: 'caravan',
+            referenceId: caravanId,
+          );
+        } catch (e) {
+          await sb.from('caravans').delete().eq('id', caravanId);
+          rethrow;
+        }
       }
 
       await AdminPushService().sendToAdmins(
@@ -589,8 +590,6 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
-                      // ✅ 2. GÜNCELLEME: Kurallar Kartı Ortak Bilgilendirme Sheet'ine Tetiklenecek Şekilde Ayarlandı
                       _GlassCard(
                         title: "Kurallar ve Yasal Sorumluluk",
                         icon: Icons.security_outlined,

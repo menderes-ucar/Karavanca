@@ -4,8 +4,8 @@ import '../../models/camp_model.dart';
 import '../../widgets/image_slider.dart';
 import '../../widgets/amenity_tile.dart';
 
-// ✅ EKLE
 import '../../services/camp_favorites_service.dart';
+import '../../widgets/representative_image_badge.dart';
 
 class CampDetailPage extends StatelessWidget {
   final CampModel camp;
@@ -47,6 +47,7 @@ class CampDetailPage extends StatelessWidget {
       const SnackBar(content: Text('Şikayet alındı. Admin inceleyecek.')),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final fav = CampFavoritesService.I; // ✅ EKLE
@@ -138,6 +139,14 @@ class CampDetailPage extends StatelessWidget {
                         runSpacing: 8,
                         children:
                         camp.tags.map((t) => Chip(label: Text(t))).toList(),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // ✅ TEMSİLÎ GÖRSEL BİLGİLENDİRME KARTI (Tıklanabilir)
+                      const RepresentativeImageBadge(
+                        isMini: false,
+                        themeColor: Color(0xFF06343A),
                       ),
 
                       const SizedBox(height: 16),

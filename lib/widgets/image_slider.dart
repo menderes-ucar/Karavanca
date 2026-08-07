@@ -18,19 +18,40 @@ class _ImageSliderState extends State<ImageSlider> {
     super.dispose();
   }
 
+  // 🌲 Akıllı Görsel Oluşturucu
+  Widget _buildImage(String path) {
+    if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(color: Colors.black12),
+      );
+    }
+
+    return Image.network(
+      path,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Image.asset(
+        'assets/images/camps/orman.png',
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // 🌲 Eğer resim listesi boşsa varsayılan resmimiz olan orman.png'yi göster
+    final displayImages = widget.images.isEmpty
+        ? ['assets/images/camps/orman.png']
+        : widget.images;
+
     return Stack(
       children: [
         PageView.builder(
           controller: _controller,
-          itemCount: widget.images.length,
+          itemCount: displayImages.length,
           onPageChanged: (i) => setState(() => _index = i),
-          itemBuilder: (_, i) => Image.network(
-            widget.images[i],
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(color: Colors.black12),
-          ),
+          itemBuilder: (_, i) => _buildImage(displayImages[i]),
         ),
 
         // üst gradient: text/ikon okunur
@@ -50,27 +71,28 @@ class _ImageSliderState extends State<ImageSlider> {
         ),
 
         // dot indicator
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 10,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(widget.images.length, (i) {
-              final active = i == _index;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                height: 7,
-                width: active ? 18 : 7,
-                decoration: BoxDecoration(
-                  color: active ? Colors.white : Colors.white70,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              );
-            }),
+        if (displayImages.length > 1)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 10,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(displayImages.length, (i) {
+                final active = i == _index;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  height: 7,
+                  width: active ? 18 : 7,
+                  decoration: BoxDecoration(
+                    color: active ? Colors.white : Colors.white70,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                );
+              }),
+            ),
           ),
-        ),
       ],
     );
   }

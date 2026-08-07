@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../constants/app_config.dart';
 import '../../models/product_model.dart';
 import '../../services/chat_push_service.dart';
 import '../../services/credit_service.dart';
@@ -55,7 +56,7 @@ class _ProductChatPageState extends State<ProductChatPage> {
     super.dispose();
   }
 
-  // ✅ YENİ: Kredi yetersizse gösterilecek dialog
+  // ✅ Kredi yetersizse gösterilecek dialog
   Future<void> _showInsufficientCreditsDialog() async {
     if (!mounted) return;
     await showDialog(
@@ -121,15 +122,16 @@ class _ProductChatPageState extends State<ProductChatPage> {
           // ✅ Var olan sohbet -> kredi harcanmaz
           tid = existing['id'].toString();
         } else {
-          // ✅ YENİ: Yeni sohbet açılacak -> önce kredi kontrolü
-          final hasCredits =
-          await _creditService.hasEnoughCredits(CreditService.messageThreadCost);
-          if (!hasCredits) {
-            if (!mounted) return;
-            setState(() => loading = false);
-            _showInsufficientCreditsDialog();
-            Navigator.pop(context);
-            return;
+          // ✅ Yeni sohbet açılacak -> Sistem aktifse kredi kontrolü
+          if (AppConfig.isCreditSystemActive) {
+            final hasCredits = await _creditService.hasEnoughCredits(CreditService.messageThreadCost);
+            if (!hasCredits) {
+              if (!mounted) return;
+              setState(() => loading = false);
+              _showInsufficientCreditsDialog();
+              Navigator.pop(context);
+              return;
+            }
           }
 
           final inserted = await sb.from('chat_threads').insert({
@@ -145,20 +147,21 @@ class _ProductChatPageState extends State<ProductChatPage> {
 
           final newTid = inserted['id'].toString();
 
-          // ✅ YENİ: Sohbet oluşturulduktan sonra kredi düş.
-          // Düşürme başarısız olursa (nadir race condition), sohbeti geri al.
-          try {
-            await _creditService.deductForMessage(referenceId: newTid);
-          } catch (e) {
-            await sb.from('chat_threads').delete().eq('id', newTid);
-            if (e is InsufficientCreditsException) {
-              if (!mounted) return;
-              setState(() => loading = false);
-              _showInsufficientCreditsDialog();
-              Navigator.pop(context);
-              return;
+          // ✅ Sohbet oluşturulduktan sonra Sistem aktifse kredi düş
+          if (AppConfig.isCreditSystemActive) {
+            try {
+              await _creditService.deductForMessage(referenceId: newTid);
+            } catch (e) {
+              await sb.from('chat_threads').delete().eq('id', newTid);
+              if (e is InsufficientCreditsException) {
+                if (!mounted) return;
+                setState(() => loading = false);
+                _showInsufficientCreditsDialog();
+                Navigator.pop(context);
+                return;
+              }
+              rethrow;
             }
-            rethrow;
           }
 
           tid = newTid;

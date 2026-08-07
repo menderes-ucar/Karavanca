@@ -1,5 +1,5 @@
 class LegalTexts {
-  LegalTexts._(); // Nesne üretilmesini engellemek için private constructor
+  LegalTexts._();
 
   static const String title = "Yasal Sorumluluk Beyanı";
   static const String buttonText = "Okudum, Kabul Ediyorum";
@@ -19,5 +19,5 @@ class LegalTexts {
   static const String campDisclaimer =
       "Önerdiğiniz kamp alanına, işletmeye veya doğal bölgeye dair paylaştığınız bilgilerin, "
       "konum verilerinin ve varsa fotoğrafların doğruluğundan, yasal haklarından tamamen siz sorumlusunuz. "
-      "Hatalı veya yanıltıcı konum bildirimlerinden platformumuz mesul tutulamaz.";
+      "Hatalı veya yanıltıcı konum bildirimlerinden platformumuz sorumlu tutulamaz.";
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../constants/app_config.dart';
 import '../credits/credit_history_page.dart';
 import '../credits/credit_packages_page.dart';
 import 'admin_hub_page.dart';
@@ -117,7 +118,7 @@ class _ProfilePageState extends State<ProfilePage> {
       "Haziran",
       "Temmuz",
       "Ağustos",
-      "Eylül",
+      "Eylül",
       "Ekim",
       "Kasım",
       "Aralık",
@@ -128,6 +129,72 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _signOut() async {
     await Supabase.instance.client.auth.signOut();
+  }
+
+  // 🗑️ HESAP SİLME FONKSİYONU
+  Future<void> _deleteAccount() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+            SizedBox(width: 10),
+            Text("Hesabımı Sil", style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Text(
+          "Hesabınızı ve buna bağlı verilerinizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("Vazgeç", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("Evet, Hesabımı Sil", style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final sb = Supabase.instance.client;
+      final uid = sb.auth.currentUser?.id;
+
+      if (uid == null) return;
+
+      // 1. Profil tablosundan veriyi sil
+      await sb.from('profiles').delete().eq('id', uid);
+
+      // 2. RPC veya yetkili delete işlemi varsa (Opsiyonel RPC)
+      try {
+        await sb.rpc('delete_user');
+      } catch (_) {}
+
+      // 3. Oturumu Kapat
+      await sb.auth.signOut();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Hesabınız başarıyla silindi.")),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Hesap silinirken hata oluştu: $e")),
+      );
+    }
   }
 
   void _soon(String text) {
@@ -227,25 +294,37 @@ class _ProfilePageState extends State<ProfilePage> {
                         title: "Paket Satın Al",
                         subtitle: "İlan hakkı ve görünürlük paketleri",
                         color: Colors.purple,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const CreditPackagesPage()),
-                        ),
+                        onTap: () {
+                          if (!AppConfig.isCreditSystemActive) {
+                            _soon("Kredi paket sistemi yakında aktif olacaktır.");
+                            return;
+                          }
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const CreditPackagesPage()),
+                          );
+                        },
                       ),
                       _MenuAction(
                         icon: Icons.receipt_long_outlined,
                         title: "Kredi Hareketlerim",
                         subtitle: "Kredi kazanma ve harcama geçmişin",
                         color: ProfilePage.turquoise,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const CreditHistoryPage()),
-                        ),
+                        onTap: () {
+                          if (!AppConfig.isCreditSystemActive) {
+                            _soon("Kredi hareketleri yakında aktif olacaktır.");
+                            return;
+                          }
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const CreditHistoryPage()),
+                          );
+                        },
                       ),
                       _MenuAction(
                         icon: Icons.info_outline,
-                        title: "Hakkında",
-                        subtitle: "Karavanis hakkında bilgi",
+                        title: "Karavanis Hakkında",
+                        subtitle: "Vizyonumuz, platform mimarimiz ve ekosistemimiz",
                         color: Colors.blueGrey,
                         onTap: () => Navigator.push(
                           context,
@@ -254,8 +333,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       _MenuAction(
                         icon: Icons.privacy_tip_outlined,
-                        title: "Gizlilik Politikası",
-                        subtitle: "Veri ve gizlilik açıklamaları",
+                        title: "Gizlilik ve Veri Güvenliği",
+                        subtitle: "KVKK uyumluluğu, veri işleme ve güvenlik politikaları",
                         color: Colors.indigo,
                         onTap: () => Navigator.push(
                           context,
@@ -264,8 +343,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       _MenuAction(
                         icon: Icons.article_outlined,
-                        title: "Kullanım Koşulları",
-                        subtitle: "Platform kullanım şartları",
+                        title: "Hizmet ve Kullanım Şartları",
+                        subtitle: "Platform standartları, kullanıcı hakları ve taahhütler",
                         color: Colors.brown,
                         onTap: () => Navigator.push(
                           context,
@@ -300,6 +379,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                     const SizedBox(height: 18),
                     _logoutCard(),
+                    const SizedBox(height: 12),
+                    _deleteAccountCard(), // 🗑️ ÇIKIŞ YAPIN ALTINA EKLENEN HESAP SİLME BUTONU
                   ],
                 ),
               ),
@@ -473,16 +554,10 @@ class _ProfilePageState extends State<ProfilePage> {
       _StatItem(
         icon: Icons.credit_score,
         title: "İlan Kredisi",
-        // ✅ GÜNCELLENDİ: artık gerçek kredi
-        value: credits.toString(),
+        value: AppConfig.isCreditSystemActive ? credits.toString() : "Sınırsız",
         color: ProfilePage.turquoise,
       ),
-      _StatItem(
-        icon: Icons.image_outlined,
-        title: "Foto Limit",
-        value: "15",
-        color: Colors.blue,
-      ),
+
       _StatItem(
         icon: Icons.verified_outlined,
         title: "Onay",
@@ -750,6 +825,28 @@ class _ProfilePageState extends State<ProfilePage> {
         label: const Text(
           "Çıkış Yap",
           style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+      ),
+    );
+  }
+
+  // 🗑️ HESAP SİLME BUTONU WIDGET'I
+  Widget _deleteAccountCard() {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton.icon(
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.red.shade700,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+        onPressed: _deleteAccount,
+        icon: const Icon(Icons.delete_forever_outlined, size: 20),
+        label: const Text(
+          "Hesabımı Sil",
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            decoration: TextDecoration.underline,
+          ),
         ),
       ),
     );

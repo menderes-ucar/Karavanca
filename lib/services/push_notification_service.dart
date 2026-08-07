@@ -69,7 +69,17 @@ class PushNotificationService {
   static Future<void> _initLocalNotifications() async {
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const initSettings = InitializationSettings(android: androidInit);
+    // 🚀 iOS İÇİN DE YEREL BİLDİRİM AYARINI EKLİYORUZ
+    const darwinInit = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
+    const initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: darwinInit,
+    );
 
     await _local.initialize(
       initSettings,
@@ -107,6 +117,16 @@ class PushNotificationService {
           sound: true,
           provisional: false,
         );
+
+        // 🚀 iOS ÖN PLANDAYKEN BİLDİRİMİN SES/AÇILIR PENCERE VERMESİNİ SAĞLAR
+        if (Platform.isIOS) {
+          await FirebaseMessaging.instance
+              .setForegroundNotificationPresentationOptions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+        }
 
         debugPrint(
           '🔔 Notification permission status: ${settings.authorizationStatus}',

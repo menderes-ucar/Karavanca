@@ -96,6 +96,14 @@ class CampModel {
     this.mapsQuery,
   });
 
+  // 🌲 GÜVENLİ RESİM LİSTESİ: Liste boşsa veya geçersizse lokal orman.png döndürür
+  List<String> get safeImages {
+    if (images.isEmpty) {
+      return ["assets/images/camps/orman.png"];
+    }
+    return images;
+  }
+
   /// ✅ SUPABASE DB -> CampModel (snake_case kolonlar)
   factory CampModel.fromDb(Map<String, dynamic> j) {
     // CSV import sonrası bazen array alanları List gelir, bazen string gelir.
@@ -154,7 +162,7 @@ class CampModel {
       pricePerNight: (j['price_per_night'] is num)
           ? (j['price_per_night'] as num).toInt()
           : int.tryParse((j['price_per_night'] ?? '0').toString()) ?? 0,
-      images: images,
+      images: images.isEmpty ? ["assets/images/camps/orman.png"] : images,
       categoryId: (j['category_id'] ?? 'camping').toString(),
       tags: tags,
       amenities: amenities,
@@ -170,9 +178,7 @@ class CampModel {
     );
   }
 
-  /// ✅ Seed JSON -> CampModel (SENİN KODUN AYNEN)
-  /// Seed JSON örnek alanlar:
-  /// id, name, city, district, description, amenities[], phone, website, fee, openingHours
+  /// ✅ Seed JSON -> CampModel
   factory CampModel.fromSeedJson(Map<String, dynamic> j) {
     final id = (j.s("id") ?? "").trim();
     final name = (j.s("name") ?? "Bilinmeyen Kamp").trim();
@@ -198,9 +204,9 @@ class CampModel {
       return CampAmenity(name: a, icon: icon, available: true);
     }).toList();
 
-    // küçük bir placeholder görsel (senin asset yoluna göre değiştir)
+    // ✅ DÜZELTME: Eskiden "placeholder.jpg" olan yer orman.png olarak değiştirildi
     final images = <String>[
-      "assets/images/camps/placeholder.jpg",
+      "assets/images/camps/orman.png",
     ];
 
     // price: seed’de yok -> 0 ver (UI’da “—” gösterebilirsin)

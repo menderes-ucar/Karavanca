@@ -5,9 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../constants/app_config.dart';
 import '../../services/product_service.dart';
 import '../../services/credit_service.dart';
-// ✅ Paket yollarına göre burayı kontrol et knk
 import '../../constants/legal_texts.dart';
 import '../../widgets/legal_disclaimer_sheet.dart';
 
@@ -186,7 +186,7 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
     }
   }
 
-  // ✅ YENİ: Kredi yetersizse gösterilecek dialog
+  // ✅ Kredi yetersizse gösterilecek dialog
   Future<void> _showInsufficientCreditsDialog() async {
     if (!mounted) return;
     await showDialog(
@@ -228,14 +228,15 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
 
     setState(() => _loading = true);
     try {
-      // ✅ YENİ: Kredi kontrolü — yetersizse ilan oluşturulmadan durdur
-      final hasCredits =
-      await _creditService.hasEnoughCredits(CreditService.productListingCost);
-      if (!hasCredits) {
-        if (!mounted) return;
-        setState(() => _loading = false);
-        _showInsufficientCreditsDialog();
-        return;
+      // ✅ Kredi kontrolü — Sistem pasifse atlanır
+      if (AppConfig.isCreditSystemActive) {
+        final hasCredits = await _creditService.hasEnoughCredits(CreditService.productListingCost);
+        if (!hasCredits) {
+          if (!mounted) return;
+          setState(() => _loading = false);
+          _showInsufficientCreditsDialog();
+          return;
+        }
       }
 
       final productId = await _service.create(
@@ -250,17 +251,18 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
         condition: conditionId,
       );
 
-      // ✅ YENİ: İlan oluşturulduktan sonra kredi düş.
-      // Düşürme başarısız olursa (nadir race condition), ilanı geri al.
-      try {
-        await _creditService.deductForListing(
-          amount: CreditService.productListingCost,
-          listingType: 'product',
-          referenceId: productId,
-        );
-      } catch (e) {
-        await Supabase.instance.client.from('products').delete().eq('id', productId);
-        rethrow;
+      // ✅ İlan oluşturulduktan sonra kredi düş — Sistem pasifse atlanır
+      if (AppConfig.isCreditSystemActive) {
+        try {
+          await _creditService.deductForListing(
+            amount: CreditService.productListingCost,
+            listingType: 'product',
+            referenceId: productId,
+          );
+        } catch (e) {
+          await Supabase.instance.client.from('products').delete().eq('id', productId);
+          rethrow;
+        }
       }
 
       if (!mounted) return;
@@ -363,14 +365,13 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
                             color: Colors.white.withOpacity(0.72),
                             border: Border.all(color: Colors.white.withOpacity(0.45)),
                           ),
-                          // ✅ Listenin başındaki const kaldırıldı, hata çözüldü
                           child: Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: [
-                              const _Pill(text: "15 Foto", icon: Icons.photo_outlined),
-                              const _Pill(text: "Durum", icon: Icons.fact_check_outlined),
-                              const _Pill(text: "Tür", icon: Icons.category_outlined),
+                            children: const [
+                              _Pill(text: "15 Foto", icon: Icons.photo_outlined),
+                              _Pill(text: "Durum", icon: Icons.fact_check_outlined),
+                              _Pill(text: "Tür", icon: Icons.category_outlined),
                             ],
                           ),
                         ),
