@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_guard.dart';
 import 'package:karavanis/screens/camps/suggest_camp_page.dart';
 
 import '../../models/category_model.dart';
@@ -60,7 +61,10 @@ class _CampShellState extends State<CampShell> {
       bottomNavigationBar: NavigationBar(
         backgroundColor: const Color(0xFF2E7D32),
         selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        onDestinationSelected: (i) async {
+          if (i == 1 && !await AuthGuard.requireAuth(context)) return;
+          if (mounted) setState(() => _index = i);
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),

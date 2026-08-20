@@ -153,12 +153,27 @@ class TermsPage extends StatelessWidget {
               "Yayınlanan karavan, ürün veya kamp ilanlarının doğruluğu, mülkiyet hakları ve yasal sorumluluğu tamamen ilanı oluşturan kullanıcıya aittir. Yanıltıcı, telif hakkını ihlal eden veya yasadışı içerikler tespiti halinde derhal kaldırılır ve hesap askıya alınır.",
             ),
             _buildSection(
-              title: "3. Fikri Mülkiyet Hakları",
+              title: "3. Topluluk Kuralları ve UGC Güvenliği",
+              content:
+              "Karavanis; taciz, tehdit, nefret söylemi, cinsel içerik, dolandırıcılık, spam, yasa dışı faaliyetleri teşvik eden veya başka kişilerin haklarını ihlal eden içeriklere tolerans göstermez. Kullanıcılar uygunsuz içerikleri ve kötüye kullanan hesapları bildirebilir ve engelleyebilir. Bildirilen içerikler moderasyon sürecine alınır; gerekli durumlarda içerik kaldırılır ve hesap askıya alınabilir veya kapatılabilir.",
+            ),
+            _buildSection(
+              title: "4. İçerik Filtreleme ve Moderasyon",
+              content:
+              "Platform, mesajlar ve kullanıcı tarafından oluşturulan içerikler için otomatik ve manuel güvenlik kontrolleri kullanabilir. Kullanıcılar tarafından yapılan bildirimler makul şekilde ve gecikmeden incelenir. Objectionable veya abusive içerik tespit edildiğinde kaldırma, erişimi kısıtlama ve hesap kapatma dahil gerekli işlemler uygulanır.",
+            ),
+            _buildSection(
+              title: "5. Kullanıcı Engelleme ve Bildirme",
+              content:
+              "Kullanıcılar başka bir kullanıcıyı engelleyebilir. Engellenen kullanıcıyla ilgili içerik ve iletişim, engelleyen kullanıcının deneyiminden çıkarılır. Engelleme aynı zamanda moderasyon ekibine kötüye kullanım sinyali sağlar. Kullanıcılar belirli bir içerik veya mesajı neden belirterek bildirebilir.",
+            ),
+            _buildSection(
+              title: "6. Fikri Mülkiyet Hakları",
               content:
               "Platform bünyesinde yer alan tüm yazılım, tasarım, marka, logo ve veritabanı hakları Karavanis'e aittir. İzinsiz kopyalanamaz, çoğaltılamaz ve tersine mühendislik işlemlerine tabi tutulamaz.",
             ),
             _buildSection(
-              title: "4. Hizmet Değişiklikleri ve Fesih",
+              title: "7. Hizmet Değişiklikleri ve Fesih",
               content:
               "Karavanis, platformun işleyişini, modüllerini veya kullanım şartlarını önceden bildirmek kaydıyla güncelleme hakkını saklı tutar. Kullanım şartlarına aykırı davranan hesaplar tek taraflı olarak kapatılabilir.",
             ),

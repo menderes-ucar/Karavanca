@@ -104,27 +104,6 @@ class CampListCard extends StatelessWidget {
                             color: Colors.black54,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.star,
-                                size: 16, color: Colors.orange),
-                            const SizedBox(width: 4),
-                            Text(
-                              camp.rating
-                                  .toStringAsFixed(1),
-                              style: const TextStyle(
-                                  fontWeight:
-                                  FontWeight.w800),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              '• ${camp.reviews} Yorum',
-                              style: const TextStyle(
-                                  color: Colors.black54),
-                            ),
-                          ],
-                        )
                       ],
                     ),
                   ),

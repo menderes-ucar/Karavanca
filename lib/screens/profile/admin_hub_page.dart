@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'admin_camps_page.dart';
+import 'admin_report_page.dart';
 import 'admin_suggestions_page.dart';
 import 'admin_caravans_page.dart';
 import 'admin_products_page.dart';
@@ -119,6 +120,16 @@ class _AdminHubPageState extends State<AdminHubPage> {
           ),
           const SizedBox(height: 10),
           // ✅ YENİ: Kredi Yönetimi
+          ListTile(
+            leading: const Icon(Icons.shield_outlined),
+            title: const Text('UGC Moderasyon'),
+            subtitle: const Text('Kullanıcı raporları, içerik bildirimleri ve moderasyon'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminReportsPage()));
+            },
+          ),
+          const SizedBox(height: 10),
           ListTile(
             leading: const Icon(Icons.credit_score),
             title: const Text("Kredi Yönetimi"),

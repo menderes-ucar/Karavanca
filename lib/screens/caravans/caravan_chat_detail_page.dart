@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../constants/app_config.dart';
 import '../../services/chat_push_service.dart';
 import '../../services/credit_service.dart';
+import '../../services/ugc_moderation_service.dart';
+import '../../widgets/ugc_action_sheet.dart';
 
 class CaravanChatDetailPage extends StatefulWidget {
   final String caravanId;
@@ -36,6 +38,7 @@ class _CaravanChatDetailPageState extends State<CaravanChatDetailPage> {
   String? tid;
   String? _buyerIdFromThread;
   String? errorText;
+  bool _blocked = false;
 
   RealtimeChannel? chan;
   final List<_Msg> msgs = [];
@@ -177,6 +180,16 @@ class _CaravanChatDetailPageState extends State<CaravanChatDetailPage> {
         }
       }
 
+      final otherUserId = uid == widget.sellerId ? _buyerIdFromThread : widget.sellerId;
+      if (otherUserId != null && otherUserId.isNotEmpty) {
+        _blocked = await UgcModerationService.instance.isBlocked(otherUserId);
+        if (_blocked) {
+          if (!mounted) return;
+          setState(() { loading = false; errorText = 'Bu kullanıcı engellendi. Sohbet gösterilmiyor.'; });
+          return;
+        }
+      }
+
       await _loadMessages();
       _subscribe();
 
@@ -261,6 +274,11 @@ class _CaravanChatDetailPageState extends State<CaravanChatDetailPage> {
     final t = ctrl.text.trim();
     if (t.isEmpty) return;
 
+    if (UgcModerationService.instance.containsObjectionableContent(t)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bu mesaj topluluk kurallarına aykırı içerik içeriyor.')));
+      return;
+    }
+
     ctrl.clear();
 
     try {
@@ -311,6 +329,27 @@ class _CaravanChatDetailPageState extends State<CaravanChatDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Mesaj gönderilemedi: $e")),
       );
+    }
+  }
+
+  String? get _otherUserId {
+    final current = sb.auth.currentUser?.id;
+    if (current == null) return null;
+    return current == widget.sellerId ? _buyerIdFromThread : widget.sellerId;
+  }
+
+  Future<void> _reportOtherUser() async {
+    final other = _otherUserId;
+    if (other == null || other.isEmpty) return;
+    await UgcActionSheet.report(context: context, contentType: 'user', contentId: other, reportedUserId: other, title: 'Kullanıcıyı Şikayet Et');
+  }
+
+  Future<void> _blockOtherUser() async {
+    final other = _otherUserId;
+    if (other == null || other.isEmpty) return;
+    final ok = await UgcActionSheet.block(context: context, userId: other, userLabel: widget.sellerName.trim().isEmpty ? 'Kullanıcı' : widget.sellerName);
+    if (ok && mounted) {
+      setState(() { _blocked = true; msgs.clear(); errorText = 'Bu kullanıcı engellendi. Sohbet gösterilmiyor.'; });
     }
   }
 
@@ -421,6 +460,16 @@ class _CaravanChatDetailPageState extends State<CaravanChatDetailPage> {
           ],
         ),
         actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'report') _reportOtherUser();
+              if (value == 'block') _blockOtherUser();
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'report', child: Text('Kullanıcıyı Şikayet Et')),
+              PopupMenuItem(value: 'block', child: Text('Kullanıcıyı Engelle')),
+            ],
+          ),
           IconButton(onPressed: _boot, icon: const Icon(Icons.refresh)),
         ],
       ),
@@ -535,10 +584,11 @@ class _CaravanChatDetailPageState extends State<CaravanChatDetailPage> {
               },
             ),
           ),
-          _InputBar(
-            controller: ctrl,
-            onSend: _send,
-          ),
+          if (!_blocked)
+            _InputBar(
+              controller: ctrl,
+              onSend: _send,
+            ),
         ],
       ),
     );

@@ -13,9 +13,16 @@ class AdminPushService {
     required String body,
     Map<String, dynamic> data = const {},
   }) async {
+    final accessToken = Supabase.instance.client.auth.currentSession?.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      throw StateError('Admin oturumu gerekli.');
+    }
     final res = await http.post(
       Uri.parse(_functionUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
       body: jsonEncode({
         'userId': userId,
         'title': title,
@@ -66,9 +73,16 @@ class AdminPushService {
     required String body,
     Map<String, dynamic> data = const {},
   }) async {
+    final accessToken = Supabase.instance.client.auth.currentSession?.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      throw StateError('Admin oturumu gerekli.');
+    }
     final res = await http.post(
       Uri.parse(_functionUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
       body: jsonEncode({
         'title': title,
         'body': body,

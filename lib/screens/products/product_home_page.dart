@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_guard.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/product_model.dart';
 import '../../services/product_service.dart';
@@ -694,6 +695,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
         backgroundColor: _accent,
         foregroundColor: Colors.black,
         onPressed: () async {
+          if (!await AuthGuard.requireAuth(context)) return;
           final refreshed = await Navigator.push<bool>(
             context,
             MaterialPageRoute(builder: (_) => const ProductCreatePage()),
@@ -918,8 +920,10 @@ class _ProductHomePageState extends State<ProductHomePage> {
                                             builder: (_, favs, __) {
                                               final isFav = favs.contains(p.id);
                                               return InkWell(
-                                                onTap: () => widget.favoritesService
-                                                    .toggleFavorite(p.id),
+                                                onTap: () async {
+                                                  if (!await AuthGuard.requireAuth(context)) return;
+                                                  await widget.favoritesService.toggleFavorite(p.id);
+                                                },
                                                 child: Container(
                                                   padding: const EdgeInsets.all(6),
                                                   decoration: BoxDecoration(

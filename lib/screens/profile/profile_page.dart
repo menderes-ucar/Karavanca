@@ -3,6 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../constants/app_config.dart';
 import '../credits/credit_history_page.dart';
+import '../auth/login_page.dart';
+import '../auth/register_page.dart';
 import '../credits/credit_packages_page.dart';
 import 'admin_hub_page.dart';
 import 'legal_pages.dart';
@@ -233,6 +235,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (Supabase.instance.client.auth.currentSession == null) {
+      return _buildGuestProfile(context);
+    }
+
     return Scaffold(
       backgroundColor: ProfilePage.bg,
       body: RefreshIndicator(
@@ -386,6 +392,114 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuestProfile(BuildContext context) {
+    return Scaffold(
+      backgroundColor: ProfilePage.bg,
+      appBar: AppBar(
+        title: const Text(
+          'Profil',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+        backgroundColor: ProfilePage.deepTurquoise,
+        foregroundColor: Colors.white,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Column(
+              children: [
+                Container(
+                  width: 92,
+                  height: 92,
+                  decoration: BoxDecoration(
+                    color: ProfilePage.deepTurquoise.withOpacity(.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.person_outline,
+                    size: 52,
+                    color: ProfilePage.deepTurquoise,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Misafir olarak devam ediyorsun',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: ProfilePage.dark,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Kamp alanlarını, karavan ilanlarını ve ürünleri giriş yapmadan inceleyebilirsin. Favori, mesaj ve ilan verme gibi hesap gerektiren işlemler için giriş yapmalısın.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.45,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 26),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginPage()),
+                      );
+                      if (mounted) setState(() {});
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ProfilePage.deepTurquoise,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'Giriş Yap',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const RegisterPage()),
+                      );
+                      if (mounted) setState(() {});
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ProfilePage.deepTurquoise,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'Kayıt Ol',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

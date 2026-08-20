@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChatPushService {
   static const _functionUrl =
@@ -18,6 +19,7 @@ class ChatPushService {
       'userId': receiverUserId,
       'title': title,
       'body': body,
+      'threadId': threadId,
       'data': {
         'type': type,
         'threadId': threadId,
@@ -27,9 +29,18 @@ class ChatPushService {
 
     debugPrint('📨 CHAT PUSH PAYLOAD = ${jsonEncode(payload)}');
 
+    final session = Supabase.instance.client.auth.currentSession;
+    final accessToken = session?.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      throw StateError('Push göndermek için oturum gerekli.');
+    }
+
     final res = await http.post(
       Uri.parse(_functionUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
       body: jsonEncode(payload),
     );
 

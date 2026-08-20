@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/camp_model.dart';
+import '../../services/auth_guard.dart';
 import '../../widgets/image_slider.dart';
 import '../../widgets/amenity_tile.dart';
 
 import '../../services/camp_favorites_service.dart';
 import '../../widgets/representative_image_badge.dart';
+import '../../widgets/ugc_action_sheet.dart';
+
 
 class CampDetailPage extends StatelessWidget {
   final CampModel camp;
@@ -42,9 +45,13 @@ class CampDetailPage extends StatelessWidget {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
-  void _report(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Şikayet alındı. Admin inceleyecek.')),
+  Future<void> _report(BuildContext context) async {
+    if (!await AuthGuard.requireAuth(context)) return;
+    await UgcActionSheet.report(
+      context: context,
+      contentType: 'camp',
+      contentId: camp.id,
+      title: 'Kamp Alanını Şikayet Et',
     );
   }
 
@@ -78,6 +85,7 @@ class CampDetailPage extends StatelessWidget {
                         return InkWell(
                           borderRadius: BorderRadius.circular(999),
                           onTap: () async {
+                            if (!await AuthGuard.requireAuth(context)) return;
                             await fav.toggle(camp.id);
                           },
                           child: Container(

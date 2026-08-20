@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_guard.dart';
 import '../../models/caravan_model.dart';
 import '../../services/caravan_favorites_service.dart';
 import '../../services/caravan_service.dart';
@@ -752,6 +753,7 @@ class _CaravanListPageState extends State<CaravanListPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
+          if (!await AuthGuard.requireAuth(context)) return;
           final res = await Navigator.push<bool>(
             context,
             MaterialPageRoute(builder: (_) => const CaravanCreatePage()),

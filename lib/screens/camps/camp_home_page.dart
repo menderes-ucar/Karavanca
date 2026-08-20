@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_guard.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/filter_models.dart';
 import '../../models/camp_model.dart';
@@ -110,13 +111,6 @@ class _CampHomePageState extends State<CampHomePage> {
       x = x.where((c) => c.categoryId == f.categoryId).toList();
     }
 
-    // ✅ FİYAT FİLTRESİ KALDIRILDI (minPrice / maxPrice uygulanmıyor)
-    // if (f.minPrice != null) {
-    //   x = x.where((c) => c.pricePerNight >= f.minPrice!).toList();
-    // }
-    // if (f.maxPrice != null) {
-    //   x = x.where((c) => c.pricePerNight <= f.maxPrice!).toList();
-    // }
 
     if (f.minRating != null) {
       x = x.where((c) => c.rating >= f.minRating!).toList();
@@ -175,6 +169,7 @@ class _CampHomePageState extends State<CampHomePage> {
       backgroundColor: const Color(0xFFF2F3F5),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
+          if (!await AuthGuard.requireAuth(context)) return;
           await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const SuggestCampPage()),

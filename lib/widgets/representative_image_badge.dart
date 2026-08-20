@@ -102,7 +102,7 @@ class RepresentativeImageBadge extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     const Text(
-                      "Fotoğraflar bölge atmosferini yansıtır. Detaylar ve doğrulama için tıklayın.",
+                      "Fotoğraflar telif hakları nedeniyle temsili olarak kullanılmıştır ve gerçek kamp alanını yansıtmamaktadır.",
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.black,

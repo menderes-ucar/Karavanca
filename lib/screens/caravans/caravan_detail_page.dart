@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_guard.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/caravan_model.dart';
 import '../../services/caravan_favorites_service.dart';
+import '../../widgets/ugc_action_sheet.dart';
+import '../../services/ugc_moderation_service.dart';
 import 'caravan_chat_detail_page.dart';
 
 class CaravanDetailPage extends StatefulWidget {
@@ -88,7 +91,10 @@ class _CaravanDetailPageState extends State<CaravanDetailPage> {
               builder: (_, favs, __) {
                 final isFav = favs.contains(l.id);
                 return IconButton(
-                  onPressed: () => widget.favoritesService.toggleFavorite(l.id),
+                  onPressed: () async {
+                    if (!await AuthGuard.requireAuth(context)) return;
+                    await widget.favoritesService.toggleFavorite(l.id);
+                  },
                   icon: Icon(
                     isFav ? Icons.favorite : Icons.favorite_border,
                     color: isFav ? Colors.red : null,
@@ -252,7 +258,9 @@ class _CaravanDetailPageState extends State<CaravanDetailPage> {
                       // ✅ SATICI (sadece mesaj)
                       _SellerCard(
                         name: sellerDisplayName,
-                        onMessage: () {
+                        onMessage: () async {
+                          if (!await AuthGuard.requireAuth(context)) return;
+                          if (!mounted) return;
                           Navigator.push(
                             context,
                             MaterialPageRoute(

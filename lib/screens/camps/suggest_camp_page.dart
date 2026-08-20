@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/admin_push_service.dart';
+import '../../services/ugc_moderation_service.dart';
 import 'map_picker_osm_page.dart';
 
 // ✅ CLEAN CODE IMPORTLARI (Kendi klasör yapına göre yolları kontrol et knk)
@@ -108,6 +109,11 @@ class _SuggestCampPageState extends State<SuggestCampPage> {
     final city = _city.text.trim();
     final district = _district.text.trim();
     final desc = _desc.text.trim();
+
+    if (UgcModerationService.instance.containsObjectionableContent('$name $desc')) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kamp önerisi topluluk kurallarına aykırı içerik içeriyor.')));
+      return;
+    }
 
     if (name.isEmpty || city.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_guard.dart';
 import 'package:karavanis/screens/products/product_chats_page.dart';
 import '../../services/product_favorites_service.dart';
 import 'product_home_page.dart';
@@ -61,7 +62,10 @@ class _ProductShellState extends State<ProductShell> {
         ),
         child: NavigationBar(
           selectedIndex: _index,
-          onDestinationSelected: (i) => setState(() => _index = i),
+          onDestinationSelected: (i) async {
+            if ((i == 1 || i == 2) && !await AuthGuard.requireAuth(context)) return;
+            if (mounted) setState(() => _index = i);
+          },
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.storefront_outlined),

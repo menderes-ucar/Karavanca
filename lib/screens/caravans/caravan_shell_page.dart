@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_guard.dart';
 import '../../services/caravan_favorites_service.dart';
 import 'caravan_list_page.dart';
 import 'caravan_favorites_page.dart';
@@ -44,7 +45,10 @@ class _CaravanShellPageState extends State<CaravanShellPage> {
       bottomNavigationBar: NavigationBar(
         backgroundColor: const Color(0xFF2E7D32),
         selectedIndex: index,
-        onDestinationSelected: (i) => setState(() => index = i),
+        onDestinationSelected: (i) async {
+          if ((i == 1 || i == 2) && !await AuthGuard.requireAuth(context)) return;
+          if (mounted) setState(() => index = i);
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),

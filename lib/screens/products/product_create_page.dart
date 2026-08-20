@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../constants/app_config.dart';
 import '../../services/product_service.dart';
 import '../../services/credit_service.dart';
+import '../../services/ugc_moderation_service.dart';
 import '../../constants/legal_texts.dart';
 import '../../widgets/legal_disclaimer_sheet.dart';
 
@@ -219,6 +220,13 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
     final price = _parsePrice(_priceCtrl.text);
     if (price == null || price <= 0) {
       _toast('Fiyat geçersiz');
+      return;
+    }
+
+    if (UgcModerationService.instance.containsObjectionableContent(
+      '${_titleCtrl.text.trim()} ${_descCtrl.text.trim()}',
+    )) {
+      _toast('İlan metni topluluk kurallarına aykırı içerik içeriyor.');
       return;
     }
 

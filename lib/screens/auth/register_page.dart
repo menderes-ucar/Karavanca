@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../profile/legal_pages.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -17,6 +18,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool _loading = false;
   bool _obscure = true;
+  bool _termsAccepted = false;
 
   SupabaseClient get supa => Supabase.instance.client;
 
@@ -36,6 +38,11 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
+    if (!_termsAccepted) {
+      _toast('Kullanım Koşulları ve Topluluk Kuralları kabul edilmelidir.');
+      return;
+    }
+
     setState(() => _loading = true);
 
     try {
@@ -46,6 +53,8 @@ class _RegisterPageState extends State<RegisterPage> {
           'first_name': firstName,
           'last_name': lastName,
           'full_name': '$firstName $lastName',
+          'terms_accepted_at': DateTime.now().toUtc().toIso8601String(),
+          'terms_version': '2026-08',
         },
       );
 
@@ -178,7 +187,38 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 16),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Checkbox(
+                                        value: _termsAccepted,
+                                        onChanged: _loading
+                                            ? null
+                                            : (value) => setState(() => _termsAccepted = value ?? false),
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(top: 11),
+                                          child: Wrap(
+                                            children: [
+                                              const Text(
+                                                'Kullanım Koşulları ve Topluluk Kuralları’nı okudum ve kabul ediyorum.',
+                                                style: TextStyle(color: Colors.white, height: 1.35),
+                                              ),
+                                              TextButton(
+                                                onPressed: _loading
+                                                    ? null
+                                                    : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsPage())),
+                                                child: const Text('Koşulları Gör'),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
                                   ElevatedButton(
                                     onPressed: _loading ? null : _register,
                                     style: ElevatedButton.styleFrom(

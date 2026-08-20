@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_guard.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/product_model.dart';
 import '../../services/product_favorites_service.dart';
+import '../../widgets/ugc_action_sheet.dart';
 import 'product_chat_page.dart';
 
 class ProductDetailPage extends StatelessWidget {
@@ -143,12 +145,29 @@ class ProductDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Ürün Detayı"),
         actions: [
+          IconButton(
+            tooltip: 'Şikayet Et',
+            onPressed: () async {
+              if (!await AuthGuard.requireAuth(context)) return;
+              await UgcActionSheet.report(
+                context: context,
+                contentType: 'product',
+                contentId: product.id,
+                reportedUserId: product.ownerId,
+                title: 'Ürün İlanını Şikayet Et',
+              );
+            },
+            icon: const Icon(Icons.flag_outlined),
+          ),
           ValueListenableBuilder<Set<String>>(
             valueListenable: favoritesService.favoriteIds,
             builder: (_, favs, __) {
               final isFav = favs.contains(product.id);
               return IconButton(
-                onPressed: () => favoritesService.toggleFavorite(product.id),
+                onPressed: () async {
+                  if (!await AuthGuard.requireAuth(context)) return;
+                  await favoritesService.toggleFavorite(product.id);
+                },
                 icon: Icon(
                   isFav ? Icons.favorite : Icons.favorite_border,
                   color: isFav ? Colors.red : null,
@@ -321,7 +340,9 @@ class ProductDetailPage extends StatelessWidget {
                       SizedBox(
                         height: 44,
                         child: ElevatedButton.icon(
-                          onPressed: () {
+                          onPressed: () async {
+                            if (!await AuthGuard.requireAuth(context)) return;
+                            if (!context.mounted) return;
                             Navigator.push(
                               context,
                               MaterialPageRoute(

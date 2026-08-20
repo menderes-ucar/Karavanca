@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/push_notification_service.dart';
 import 'register_page.dart';
+import '../profile/legal_pages.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -34,6 +35,11 @@ class _LoginPageState extends State<LoginPage> {
         email: email,
         password: pass,
       );
+
+      if (!mounted) return;
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context, true);
+      }
     } on AuthException catch (e) {
       _toast(e.message);
     } catch (_) {
@@ -112,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
                               subtitle: 'Kamp • Karavan • Ürün',
                               icon: Icons.terrain,
                             ),
-                            const SizedBox(height: 18),
+                            const SizedBox(height: 38),
                             _CardShell(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -170,7 +176,18 @@ class _LoginPageState extends State<LoginPage> {
                                     )
                                         : const Text('Giriş Yap'),
                                   ),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 10),
+                                  const Text(
+                                    "Giriş yaparak Kullanım Koşulları ve Topluluk Kuralları'nı kabul etmiş olursun.",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.35),
+                                  ),
+                                  TextButton(
+                                    onPressed: _loading
+                                        ? null
+                                        : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsPage())),
+                                    child: const Text('Kullanım Koşulları ve Topluluk Kuralları'),
+                                  ),
                                   TextButton(
                                     onPressed: _loading
                                         ? null

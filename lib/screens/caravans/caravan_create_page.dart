@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../constants/app_config.dart';
 import '../../services/admin_push_service.dart';
 import '../../services/credit_service.dart';
+import '../../services/ugc_moderation_service.dart';
 import '../../constants/legal_texts.dart';
 import '../../widgets/legal_disclaimer_sheet.dart';
 
@@ -236,6 +237,11 @@ class _CaravanCreatePageState extends State<CaravanCreatePage> {
     final title = titleCtrl.text.trim();
     final desc = descCtrl.text.trim();
     final priceText = priceCtrl.text.trim();
+
+    if (UgcModerationService.instance.containsObjectionableContent('$title $desc')) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('İlan metni topluluk kurallarına aykırı içerik içeriyor.')));
+      return;
+    }
 
     if (title.isEmpty || priceText.isEmpty || city == null) {
       ScaffoldMessenger.of(context).showSnackBar(

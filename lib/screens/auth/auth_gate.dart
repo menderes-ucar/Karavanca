@@ -24,11 +24,12 @@ class AuthGate extends StatelessWidget {
           Future.microtask(() async {
             await PushNotificationService.init();
           });
-
-          return const MainShell();
         }
 
-        return const LoginPage();
+        // Apple Guideline 5.1.1: account-independent content remains
+        // accessible without registration. Account-based actions are
+        // protected at the point where the action is requested.
+        return const MainShell();
       },
     );
   }
